@@ -1,0 +1,20 @@
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Environment Variables & Secrets
+.env
+*.env
+
+# Python Cache & Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary Uploads & Images
+temp_uploads/
+*.jpg
+*.jpeg
+*.png

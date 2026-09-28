@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaimShield AI | Intelligent Insurance Verification</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <span class="brand-name">ClaimShield <span>AI</span></span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="#verification" class="nav-link active" data-tab="verification">Claim Verification</a>
+        <a href="#audit" class="nav-link" data-tab="audit">Policy Audit</a>
+        <a href="#dashboard" class="nav-link" data-tab="dashboard">Dashboard</a>
+      </nav>
+
+      <button class="nav-btn" id="open-chat-btn">
+        Chat With Assistant
+      </button>
+    </div>
+  </header>
+
+  <!-- Light-Black Hero Section with Car & Property Background -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-container">
+      <h1>Detect & Verify Insurance Claim Evidence</h1>
+      <p>Submit damage photos and incident reports to our intelligent assistant for automated fraud analysis and metadata validation.</p>
+      <button class="btn-hero" id="hero-chat-trigger">Chat With Our Assistant</button>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="main-layout">
+    
+    <!-- Tab 1: Claim Verification (Default) -->
+    <div id="tab-verification" class="tab-content active">
+      <div class="content-grid">
+        
+        <!-- Direct Form Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Submit Claim Inspection</h2>
+            <p>Provide details and upload claim evidence below.</p>
+          </div>
+
+          <form id="claim-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="claimantName">Claimant Name</label>
+                <input type="text" id="claimantName" placeholder="e.g. Jane Doe" required>
+              </div>
+              <div class="form-group">
+                <label for="policyId">Policy Number</label>
+                <input type="text" id="policyId" placeholder="e.g. POL-99201" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="incidentNarrative">Incident Description</label>
+              <textarea id="incidentNarrative" rows="3" placeholder="Describe the loss event and reported damage..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Damage Photo Evidence</label>
+              <div class="upload-dropzone">
+                <input type="file" id="imageFile" accept="image/*" required>
+                <div class="upload-box">
+                  <span class="upload-icon">📸</span>
+                  <p><strong>Click to upload</strong> or drag & drop image</p>
+                  <span class="file-types">JPG, PNG, WEBP supported</span>
+                </div>
+              </div>
+              <div id="file-name-display" class="file-selected-text"></div>
+            </div>
+
+            <button type="submit" id="submit-btn" class="btn-primary">
+              Run ClaimShield Analysis
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Analysis Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Inspection Results</h2>
+            <p>Real-time AI risk score and forensic details.</p>
+          </div>
+
+          <div id="results-container" class="results-body">
+            <div class="empty-state">
+              <div class="placeholder-icon">🛡️</div>
+              <h3>Awaiting Claim Submission</h3>
+              <p>Fill out the form on the left or use the interactive Chat Assistant to inspect damage photos.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab 2: Policy Audit -->
+    <div id="tab-audit" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Policy Audit Engine</h2>
+          <p>Verify policy coverage caps, deductible terms, and clause compliance.</p>
+        </div>
+        <div class="audit-placeholder">
+          <p>🔍 Search or upload policy documents (.pdf) to cross-check coverage against submitted claim estimates.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Dashboard -->
+    <div id="tab-dashboard" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Claims & Fraud Metrics Dashboard</h2>
+          <p>Overview of total claims processed and risk categories.</p>
+        </div>
+        <div class="dashboard-stats-grid">
+          <div class="stat-card">
+            <h4>Total Claims Analyzed</h4>
+            <span class="stat-num">128</span>
+          </div>
+          <div class="stat-card">
+            <h4>High-Risk Flagged</h4>
+            <span class="stat-num high-risk-num">14</span>
+          </div>
+          <div class="stat-card">
+            <h4>Average Processing Time</h4>
+            <span class="stat-num">1.4s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Interactive Real-Estate Style Live AI Chat Widget -->
+  <div class="chat-widget" id="chat-widget">
+    <div class="chat-header">
+      <div class="chat-title">
+        <span class="chat-dot"></span>
+        <strong>ClaimShield AI Assistant</strong>
+      </div>
+      <button class="chat-close" id="chat-close">&times;</button>
+    </div>
+
+    <div class="chat-body" id="chat-messages">
+      <div class="chat-bubble bot-bubble">
+        Hello! I am your ClaimShield AI Assistant. Ask me anything about auto or property insurance claim verification!
+      </div>
+    </div>
+
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type your message...">
+      <button id="chat-send-btn">Send</button>
+    </div>
+  </div>
+
+  <!-- Floating Chat Button -->
+  <button class="floating-chat-btn" id="floating-chat-trigger">
+    💬
+  </button>
+
+  <script src="app.js"></script>
+</body>
+</html>
