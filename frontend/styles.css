@@ -545,3 +545,8 @@ body {
   align-items: center;
   justify-content: center;
 }
+.risk-badge.high-risk {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+}

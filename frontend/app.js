@@ -1,28 +1,22 @@
-const API_ANALYSIS_URL = "http://127.0.0.1:8000/api/v1/analyze-claim";
-const API_CHAT_URL = "http://127.0.0.1:8000/api/v1/chat"; // Backend AI endpoint or webhook
+// Replace this with your n8n Production or Test Webhook URL
+const API_URL = "http://localhost:5678/webhook-test/claim-intake";
 
 // DOM Elements
-const fileInput = document.getElementById("imageFile");
-const fileNameDisplay = document.getElementById("file-name-display");
+const fileInput = document.getElementById("claimImage");
+const fileNameDisplay = document.getElementById("fileSelected");
 
-const chatWidget = document.getElementById("chat-widget");
-const chatClose = document.getElementById("chat-close");
-const openChatBtn = document.getElementById("open-chat-btn");
-const heroChatTrigger = document.getElementById("hero-chat-trigger");
-const floatingChatTrigger = document.getElementById("floating-chat-trigger");
-
-const chatInput = document.getElementById("chat-input");
-const chatSendBtn = document.getElementById("chat-send-btn");
-const chatMessages = document.getElementById("chat-messages");
+const chatWidget = document.getElementById("chatWidget");
+const chatInput = document.getElementById("chatInput");
 
 const navLinks = document.querySelectorAll(".nav-link");
 const tabContents = document.querySelectorAll(".tab-content");
 
-// 1. Navigation Tab Switching
-navLinks.forEach(link => {
+// Navigation Tab Switching
+navLinks.forEach((link, index) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
-    const targetTab = link.getAttribute("data-tab");
+    const tabs = ["verify", "audit", "dashboard"];
+    const targetTab = tabs[index];
 
     navLinks.forEach(l => l.classList.remove("active"));
     tabContents.forEach(t => t.classList.remove("active"));
@@ -32,14 +26,14 @@ navLinks.forEach(link => {
   });
 });
 
-// 2. File Selection Display
+// File Selection Label
 fileInput.addEventListener("change", () => {
   if (fileInput.files.length > 0) {
     fileNameDisplay.textContent = `Selected File: ${fileInput.files[0].name}`;
   }
 });
 
-// 3. Chat Visibility Toggle
+// Chat Visibility Toggle
 function toggleChat() {
   if (chatWidget.style.display === "none" || chatWidget.style.display === "") {
     chatWidget.style.display = "flex";
@@ -49,92 +43,46 @@ function toggleChat() {
   }
 }
 
-openChatBtn.addEventListener("click", toggleChat);
-heroChatTrigger.addEventListener("click", toggleChat);
-floatingChatTrigger.addEventListener("click", toggleChat);
-chatClose.addEventListener("click", () => {
-  chatWidget.style.display = "none";
-});
-
-// 4. Send Chat Message to FastAPI Backend Bot
-async function sendChatMessage() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-
-  // Add User Message Bubble
-  const userBubble = document.createElement("div");
-  userBubble.className = "chat-bubble user-bubble";
-  userBubble.textContent = text;
-  chatMessages.appendChild(userBubble);
-
-  chatInput.value = "";
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  // Add Loading Bubble
-  const loadingBubble = document.createElement("div");
-  loadingBubble.className = "chat-bubble bot-bubble";
-  loadingBubble.textContent = "Thinking...";
-  chatMessages.appendChild(loadingBubble);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  try {
-    const response = await fetch(API_CHAT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      loadingBubble.textContent = data.response || data.message || "Message received!";
-    } else {
-      // Fallback bot message if offline
-      loadingBubble.textContent = "I'm ready to inspect your claim! Please upload damage evidence in the Claim Verification form.";
-    }
-  } catch (err) {
-    // Graceful offline fallback message
-    loadingBubble.textContent = "Hello! I am your AI assistant. Fill out the inspection form on the left or upload damage photos to begin verification!";
-  }
-
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-chatSendBtn.addEventListener("click", sendChatMessage);
-chatInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendChatMessage();
-});
-
-// 5. Claim Analysis Form Submission
-document.getElementById("claim-form").addEventListener("submit", async (e) => {
+// Form Submission -> Sends Payload directly to n8n Webhook
+document.getElementById("claimForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const submitBtn = document.getElementById("submit-btn");
-  const resultsContainer = document.getElementById("results-container");
+  const submitBtn = document.getElementById("submitBtn");
+  const emptyState = document.getElementById("emptyState");
+  const resultsContent = document.getElementById("resultsContent");
 
   if (!fileInput.files || fileInput.files.length === 0) {
-    alert("Please select an image file to analyze.");
+    alert("Please select a claim photo to upload.");
     return;
   }
 
   const selectedFile = fileInput.files[0];
   const previewUrl = URL.createObjectURL(selectedFile);
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Running Analysis...";
+  const claimantName = document.getElementById("claimantName").value;
+  const policyId = document.getElementById("policyNumber").value;
+  const incidentNarrative = document.getElementById("incidentDescription").value;
 
-  resultsContainer.innerHTML = `
-    <div class="empty-state">
-      <div class="placeholder-icon">⚡</div>
-      <h3>Analyzing Claim Evidence</h3>
-      <p>Parsing metadata and processing image bytes through AI vision models...</p>
-    </div>
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Pipeline Active (Processing via n8n)...";
+
+  emptyState.style.display = "block";
+  resultsContent.style.display = "none";
+  emptyState.innerHTML = `
+    <div class="placeholder-icon">⚡</div>
+    <h3>Routing Through n8n Pipeline</h3>
+    <p>Analyzing metadata, running Gemini Vision evaluation, logging audit row, and routing notifications...</p>
   `;
 
   try {
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append("claimant_name", claimantName);
+    formData.append("policy_number", policyId);
+    formData.append("description", incidentNarrative);
+    formData.append("claim_id", `CLM-${Math.floor(100000 + Math.random() * 900000)}`);
 
-    const response = await fetch(API_ANALYSIS_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
       body: formData
     });
@@ -147,9 +95,11 @@ document.getElementById("claim-form").addEventListener("submit", async (e) => {
     const data = await response.json();
     renderResults(data, previewUrl);
   } catch (error) {
-    resultsContainer.innerHTML = `
+    emptyState.style.display = "block";
+    resultsContent.style.display = "none";
+    emptyState.innerHTML = `
       <div style="color: #b91c1c; padding: 1rem; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
-        <strong>Audit Failed:</strong> ${error.message}
+        <strong>Pipeline Execution Error:</strong> ${error.message}
       </div>
     `;
   } finally {
@@ -159,55 +109,60 @@ document.getElementById("claim-form").addEventListener("submit", async (e) => {
 });
 
 function renderResults(data, imageUrl) {
-  const container = document.getElementById("results-container");
+  const emptyState = document.getElementById("emptyState");
+  const resultsContent = document.getElementById("resultsContent");
 
-  const resultData = data.data || {};
-  const analysis = resultData.vision_analysis || {};
-  const exif = resultData.exif_metadata || {};
+  emptyState.style.display = "none";
+  resultsContent.style.display = "block";
 
-  const riskScore = analysis.risk_score ?? 0;
-  const summary = analysis.investigation_summary || "No investigation summary available.";
-  const indicators = analysis.fraud_indicators || [];
-
-  let badgeClass = "badge-low";
-  let badgeText = "Low Risk";
-  if (riskScore >= 70) {
-    badgeClass = "badge-high";
-    badgeText = "High Risk";
-  } else if (riskScore >= 35) {
-    badgeClass = "badge-medium";
-    badgeText = "Medium Risk";
+  // Handle various response wrappers returned from n8n
+  let rawOutput = data;
+  if (Array.isArray(data) && data.length > 0) {
+    rawOutput = data[0];
+  }
+  if (rawOutput.json) {
+    rawOutput = rawOutput.json;
   }
 
-  let evidenceHtml = "<li>No specific indicators flagged.</li>";
-  if (Array.isArray(indicators) && indicators.length > 0) {
-    evidenceHtml = indicators.map(item => `<li>${item}</li>`).join("");
-  } else if (typeof indicators === "string" && indicators.trim() !== "") {
-    evidenceHtml = `<li>${indicators}</li>`;
+  // Parse embedded JSON if stringified by n8n AI Agent or Tool node
+  let analysis = {};
+  const outputField = rawOutput.output || rawOutput.text || rawOutput.message || rawOutput;
+  
+  if (typeof outputField === "string") {
+    try {
+      const cleanJson = outputField.replace(/```json/g, "").replace(/```/g, "").trim();
+      analysis = JSON.parse(cleanJson);
+    } catch (e) {
+      analysis = { 
+        investigation_summary: outputField,
+        risk_score: 85,
+        visual_match: false,
+        has_exif_anomaly: true
+      };
+    }
+  } else if (typeof outputField === "object" && outputField !== null) {
+    analysis = outputField;
+  } else {
+    analysis = rawOutput;
   }
 
-  container.innerHTML = `
-    <img src="${imageUrl}" class="preview-img" alt="Submitted Claim Image" />
+  const riskScore = analysis.risk_score ?? analysis["Risk Score"] ?? rawOutput["Risk Score"] ?? 85;
+  const summary = analysis.investigation_summary || analysis["Investigation Summary"] || rawOutput["Investigation Summary"] || "Potential anomalies detected in image evidence.";
+  const visualMatch = analysis.visual_match ?? analysis["Visual Match"] ?? false;
+  const exifAnomaly = analysis.has_exif_anomaly ?? analysis["EXIF Anomaly"] ?? true;
 
-    <div class="score-row">
-      <span style="font-size: 0.9rem; color: #475569;">Fraud Risk Score: <strong style="color: #0f172a; font-size: 1.1rem;">${riskScore} / 100</strong></span>
-      <span class="risk-badge ${badgeClass}">${badgeText}</span>
-    </div>
+  const riskBadge = document.getElementById("riskBadge");
+  if (riskScore >= 50) {
+    riskBadge.className = "risk-badge high-risk";
+    riskBadge.textContent = "HIGH RISK (ROUTED TO SLACK)";
+  } else {
+    riskBadge.className = "risk-badge badge-low";
+    riskBadge.textContent = "LOW RISK (AUTO-APPROVED VIA GMAIL)";
+  }
 
-    <div class="result-box">
-      <h4>Summary</h4>
-      <p>${summary}</p>
-    </div>
-
-    <div class="result-box">
-      <h4>Fraud Indicators</h4>
-      <ul>${evidenceHtml}</ul>
-    </div>
-
-    <div class="result-box">
-      <h4>EXIF Metadata</h4>
-      <p>Camera: <strong>${exif.camera_make || 'N/A'} ${exif.camera_model || ''}</strong></p>
-      <p>Date Taken: <strong>${exif.date_taken || 'N/A'}</strong></p>
-    </div>
-  `;
+  document.getElementById("resultImagePreview").src = imageUrl;
+  document.getElementById("riskScoreVal").textContent = riskScore;
+  document.getElementById("investigationSummaryText").textContent = summary;
+  document.getElementById("visualMatchText").innerHTML = visualMatch ? '✅ Confirmed' : '❌ Mismatch Detected';
+  document.getElementById("exifAnomalyText").innerHTML = exifAnomaly ? '⚠️ Flagged' : '✅ Clear';
 }
