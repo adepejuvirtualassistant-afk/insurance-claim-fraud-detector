@@ -26,8 +26,8 @@
     <header class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-container">
-            <h1>Detect & Verify Insurance Claim Evidence</h1>
-            <p>Submit damage photos and incident reports to our intelligent assistant for automated fraud analysis and metadata validation.</p>
+            <h1>Automated Claim Evidence Verification</h1>
+            <p>Submit damage photos and incident reports for automated validation and policy routing.</p>
         </div>
     </header>
 
@@ -48,16 +48,16 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="claimantName">Claimant Name</label>
-                                <input type="text" id="claimantName" placeholder="John Adebayo" required>
+                                <input type="text" id="claimantName" placeholder="Adepeju Adebayo" required>
                             </div>
                             <div class="form-group">
                                 <label for="policyNumber">Policy Number</label>
-                                <input type="text" id="policyNumber" placeholder="POL-88392" required>
+                                <input type="text" id="policyNumber" placeholder="POL-44911" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="incidentDescription">Incident Description</label>
-                            <textarea id="incidentDescription" rows="4" placeholder="Describe the incident details..." required></textarea>
+                            <label for="incidentDescription">Incident Description <span class="label-hint" style="font-weight: normal; font-size: 0.85rem; color: #64748b;">(Please be as descriptive as possible about the location and extent of the damage)</span></label>
+                            <textarea id="incidentDescription" rows="4" placeholder="Describe the incident details, impact point, and visible structural damage..." required></textarea>
                         </div>
                         <div class="form-group">
                             <label>Damage Photo Evidence</label>
@@ -69,39 +69,28 @@
                                 <div id="fileSelected" class="file-selected-text"></div>
                             </div>
                         </div>
-                        <button type="submit" class="btn-primary" id="submitBtn">Run ClaimShield Analysis</button>
+                        <button type="submit" class="btn-primary" id="submitBtn">Submit Claim for Review</button>
                     </form>
                 </div>
 
                 <!-- Results Card -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>Inspection Results</h2>
-                        <p>Real-time AI risk score and forensic details.</p>
+                        <h2>Verification Status</h2>
+                        <p>Automated claim processing status.</p>
                     </div>
                     
                     <div id="emptyState" class="empty-state">
-                        <div class="placeholder-icon">🔍</div>
-                        <p>Awaiting claim submission. Upload evidence and run analysis to view AI assessment.</p>
+                        <div class="placeholder-icon">📋</div>
+                        <p>Submit a claim inspection on the left to initiate automated validation.</p>
                     </div>
 
                     <div id="resultsContent" style="display: none;">
                         <img id="resultImagePreview" class="preview-img" src="" alt="Uploaded Evidence">
                         
-                        <div class="score-row">
-                            <span>Fraud Risk Score: <strong id="riskScoreVal">0</strong> / 100</span>
-                            <span id="riskBadge" class="risk-badge badge-low">Analyzing...</span>
-                        </div>
-
-                        <div class="result-box">
-                            <h4>Investigation Summary</h4>
-                            <p id="investigationSummaryText">Processing forensic logs...</p>
-                        </div>
-
-                        <div class="result-box">
-                            <h4>Multimodal & Metadata Validation</h4>
-                            <p>Visual Match with Narrative: <span id="visualMatchText">Confirmed</span></p>
-                            <p>EXIF Metadata Anomaly: <span id="exifAnomalyText">Clear</span></p>
+                        <div id="statusResultBox" class="status-result-container" style="margin-top: 20px; padding: 20px; border-radius: 8px; text-align: center;">
+                            <h3 id="statusTitle" style="margin-bottom: 8px; font-size: 1.25rem;">Processing...</h3>
+                            <p id="statusMessage" style="color: #475569; font-size: 0.95rem;">Evaluating submission credentials...</p>
                         </div>
                     </div>
                 </div>
@@ -126,21 +115,21 @@
         <section id="tab-dashboard" class="tab-content">
             <div class="card">
                 <div class="card-header">
-                    <h2>Claims & Fraud Metrics Dashboard</h2>
-                    <p>Overview of total claims processed and risk categories.</p>
+                    <h2>Claims Metrics Dashboard</h2>
+                    <p>Overview of total claims processed.</p>
                 </div>
                 <div class="dashboard-stats-grid">
                     <div class="stat-card">
-                        <h4>Total Claims Analyzed</h4>
+                        <h4>Total Claims Processed</h4>
                         <div class="stat-num">24</div>
                     </div>
                     <div class="stat-card">
-                        <h4>High-Risk Flagged</h4>
-                        <div class="stat-num high-risk-num">5</div>
+                        <h4>Accepted Claims</h4>
+                        <div class="stat-num">19</div>
                     </div>
                     <div class="stat-card">
-                        <h4>Average Processing Time</h4>
-                        <div class="stat-num">1.4s</div>
+                        <h4>Flagged for Manual Review</h4>
+                        <div class="stat-num high-risk-num">5</div>
                     </div>
                 </div>
             </div>
@@ -148,26 +137,96 @@
 
     </main>
 
-    <!-- Floating Chat Assistant Widget -->
-    <div id="chatWidget" class="chat-widget" style="display: none;">
-        <div class="chat-header">
-            <div class="chat-title">
-                <span class="chat-dot"></span>
-                <span>ClaimShield Assistant</span>
-            </div>
-            <button class="chat-close" onclick="toggleChat()">&times;</button>
-        </div>
-        <div class="chat-body" id="chatBody">
-            <div class="chat-bubble bot-bubble">Hello Adepeju! How can I assist you with your fraud detection pipeline today?</div>
-        </div>
-        <div class="chat-input-row">
-            <input type="text" id="chatInput" placeholder="Ask about rules or workflows...">
-            <button onclick="sendChatMessage()">Send</button>
-        </div>
-    </div>
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            if (window.event && window.event.target) {
+                window.event.target.classList.add('active');
+            }
+        }
 
-    <button class="floating-chat-btn" onclick="toggleChat()">💬</button>
+        document.getElementById('claimImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileSelected').innerText = 'Selected File: ' + file.name;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('resultImagePreview').src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
-    <script src="app.js"></script>
+        document.getElementById('claimForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const claimantName = document.getElementById('claimantName').value;
+            const policyNumber = document.getElementById('policyNumber').value;
+            const incidentDescription = document.getElementById('incidentDescription').value;
+            const fileInput = document.getElementById('claimImage').files[0];
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Verifying Claim...';
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+            document.getElementById('statusTitle').innerText = 'Analyzing Evidence...';
+            document.getElementById('statusMessage').innerText = 'Running verification checks...';
+            document.getElementById('statusResultBox').style.backgroundColor = '#f1f5f9';
+
+            try {
+                const formData = new FormData();
+                formData.append('claimantName', claimantName);
+                formData.append('policyNumber', policyNumber); // Clean key with no leading spaces
+                formData.append('incidentDescription', incidentDescription);
+                if (fileInput) {
+                    formData.append('claimImage', fileInput);
+                }
+
+                const response = await fetch('http://localhost:5678/webhook-test/claim-intake', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                const resultItem = Array.isArray(data) ? data[0] : data;
+                
+                const hasAnomaly = resultItem.has_exif_anomaly;
+
+                const statusBox = document.getElementById('statusResultBox');
+                const statusTitle = document.getElementById('statusTitle');
+                const statusMessage = document.getElementById('statusMessage');
+
+                if (hasAnomaly) {
+                    statusBox.style.backgroundColor = '#fef2f2';
+                    statusBox.style.border = '1px solid #fecaca';
+                    statusTitle.style.color = '#dc2626';
+                    statusTitle.innerText = 'Submission Rejected';
+                    statusMessage.innerText = 'Claim submission could not be verified due to image authenticity checks. Your claim has been routed to a specialist for further manual inspection.';
+                } else {
+                    statusBox.style.backgroundColor = '#f0fdf4';
+                    statusBox.style.border = '1px solid #bbf7d0';
+                    statusTitle.style.color = '#16a34a';
+                    statusTitle.innerText = 'Submission Accepted';
+                    statusMessage.innerText = 'Your claim evidence has been successfully verified and approved for automated processing.';
+                }
+
+            } catch (err) {
+                console.error("Webhook connection error:", err);
+                document.getElementById('statusTitle').innerText = 'System Notice';
+                document.getElementById('statusMessage').innerText = 'Error connecting to verification server. Please try again.';
+          } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Submit Claim for Review';
+            }
+        });
+
+        function toggleChat() {
+            alert("Assistant chat feature coming soon!");
+        }
+    </script>
 </body>
 </html>

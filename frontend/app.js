@@ -149,10 +149,13 @@ function renderResults(data, imageUrl) {
   const riskScore = analysis.risk_score ?? analysis["Risk Score"] ?? rawOutput["Risk Score"] ?? 85;
   const summary = analysis.investigation_summary || analysis["Investigation Summary"] || rawOutput["Investigation Summary"] || "Potential anomalies detected in image evidence.";
   const visualMatch = analysis.visual_match ?? analysis["Visual Match"] ?? false;
-  const exifAnomaly = analysis.has_exif_anomaly ?? analysis["EXIF Anomaly"] ?? true;
+  
+  // Safely evaluate string or boolean anomaly states from the webhook response
+  const rawAnomaly = analysis.has_exif_anomaly ?? analysis["EXIF Anomaly"] ?? rawOutput.has_exif_anomaly;
+  const exifAnomaly = rawAnomaly === true || rawAnomaly === "true" || analysis.review_status === "FLAGGED" || rawOutput.review_status === "FLAGGED";
 
   const riskBadge = document.getElementById("riskBadge");
-  if (riskScore >= 50) {
+  if (riskScore >= 50 || exifAnomaly) {
     riskBadge.className = "risk-badge high-risk";
     riskBadge.textContent = "HIGH RISK (ROUTED TO SLACK)";
   } else {
